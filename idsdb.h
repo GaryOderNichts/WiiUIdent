@@ -120,6 +120,11 @@ static struct ids_database database[] = {
 		.manufacturer = "Unknown",
 	},
 	{
+		.type = "sd",
+		.id = 0x9e,
+		.manufacturer = "PNY",
+	}.
+	{
 		.type = "mmc",
 		.id = 0x00,
 		.manufacturer = "SanDisk",
