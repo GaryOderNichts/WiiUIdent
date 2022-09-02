@@ -22,13 +22,31 @@ struct MDBlkDriver {
     int32_t registered;
     int32_t unk[2];
     struct SALDeviceParams params;
-    uint8_t unk2[204];
+    int sal_handle;
+    int deviceId;
+    uint8_t unk2[196];
 };
 static_assert(sizeof(struct MDBlkDriver) == 724, "MDBlkDriver: wrong size");
 
 #define MDBLK_DRIVER_ADDRESS 0x11c39e78
+#define MD_DEVICE_POINTERS_ADDRESS 0x10899308
 
 struct MDBlkDriver blkDrivers[2] = { 0 };
+
+static uint32_t getDeviceAddressByID(int id)
+{
+    if (id - 0x42 >= 8) {
+        return 0;
+    }
+
+    uint32_t devicePointers[8];
+    if (IOSUHAX_kern_read32(MD_DEVICE_POINTERS_ADDRESS, devicePointers, 8) < 0) {
+        return 0;
+    }
+
+    // virtual matches physical address for IOS-FS, no need to conversion
+    return devicePointers[id - 0x42];
+}
 
 int main(int argc, char const *argv[])
 {
@@ -40,7 +58,7 @@ int main(int argc, char const *argv[])
         if (IOSUHAX_kern_read32(MDBLK_DRIVER_ADDRESS, (uint32_t *) blkDrivers, sizeof(blkDrivers) / 4) >= 0) {
             for (int i = 0; i < 2; ++i) {
                 struct MDBlkDriver *drv = &blkDrivers[i];
-                WHBLogPrintf("** Instance %d: (%s) **", i + 1, drv->registered ? "Attached" : "Detached");
+                WHBLogPrintf("** Instance %d: (%s) Type: %d **", i + 1, drv->registered ? "Attached" : "Detached", drv->params.device_type);
                 if (drv->registered) {
                     uint16_t mid = drv->params.mid_prv >> 16;
                     uint16_t prv = drv->params.mid_prv & 0xff;
@@ -50,11 +68,24 @@ int main(int argc, char const *argv[])
                     WHBLogPrintf(" -> Manufacturer: '%s' Type: '%s'", db->manufacturer, db->type);
                     WHBLogPrintf("Name 0: '%s' Name 1: '%s' Name 2: '%s'", drv->params.name0, drv->params.name1, drv->params.name2);
 
-                    /*
-                    for (int j = 0; j < 4; ++j) {
-                        WHBLogPrintf("Unk %d: %08x %08x %08x %08x", j, drv->params.unk[j * 4 + 0], drv->params.unk[j * 4 + 1], drv->params.unk[j * 4 + 2], drv->params.unk[j * 4 + 3]);
+                    uint32_t deviceAddress = getDeviceAddressByID(drv->deviceId);
+                    if (!deviceAddress) {
+                        continue;
                     }
-                    */
+
+                    uint32_t cid[4];
+                    if (IOSUHAX_kern_read32(deviceAddress + 0x58, cid, 4) < 0) {
+                        continue;
+                    }
+
+                    WHBLogPrintf("CID: %08x%08x%08x%08x", cid[0], cid[1], cid[2], cid[3]);
+
+                    uint32_t csd[4];
+                    if (IOSUHAX_kern_read32(deviceAddress + 0x68, csd, 4) < 0) {
+                        continue;
+                    }
+
+                    WHBLogPrintf("CSD: %08x%08x%08x%08x", csd[0], csd[1], csd[2], csd[3]);
                 }
 
                 WHBLogPrintf("=================================================");

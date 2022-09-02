@@ -10,3 +10,4 @@ Can be used to figure out what eMMC chip is built into a console.
   -> Shows known name and type for that ID
 * Product Revision
 * Product Name
+* CID and CSD
