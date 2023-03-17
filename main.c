@@ -3,7 +3,7 @@
 #include <whb/log_udp.h>
 #include <whb/log_console.h>
 
-#include <iosuhax.h>
+#include <mocha/mocha.h>
 
 #include "idsdb.h"
 
@@ -33,6 +33,20 @@ static_assert(sizeof(struct MDBlkDriver) == 724, "MDBlkDriver: wrong size");
 
 struct MDBlkDriver blkDrivers[2] = { 0 };
 
+MochaUtilsStatus iosuKernRead32(uint32_t address, uint32_t* outBuffer, int count)
+{
+    MochaUtilsStatus status = MOCHA_RESULT_SUCCESS;
+
+    for (int i = 0; i < count; ++i) {
+        status = Mocha_IOSUKernelRead32(address + (i * 4), outBuffer + i);
+        if (status != MOCHA_RESULT_SUCCESS) {
+            break;
+        }
+    }
+
+    return status;
+}
+
 static uint32_t getDeviceAddressByID(int id)
 {
     if (id - 0x42 >= 8) {
@@ -40,7 +54,7 @@ static uint32_t getDeviceAddressByID(int id)
     }
 
     uint32_t devicePointers[8];
-    if (IOSUHAX_kern_read32(MD_DEVICE_POINTERS_ADDRESS, devicePointers, 8) < 0) {
+    if (iosuKernRead32(MD_DEVICE_POINTERS_ADDRESS, devicePointers, 8) != MOCHA_RESULT_SUCCESS) {
         return 0;
     }
 
@@ -54,8 +68,8 @@ int main(int argc, char const *argv[])
     WHBLogUdpInit();
     WHBLogConsoleInit();
 
-    if (IOSUHAX_Open(NULL) >= 0) {
-        if (IOSUHAX_kern_read32(MDBLK_DRIVER_ADDRESS, (uint32_t *) blkDrivers, sizeof(blkDrivers) / 4) >= 0) {
+    if (Mocha_InitLibrary() == MOCHA_RESULT_SUCCESS) {
+        if (iosuKernRead32(MDBLK_DRIVER_ADDRESS, (uint32_t *) blkDrivers, sizeof(blkDrivers) / 4) == MOCHA_RESULT_SUCCESS) {
             for (int i = 0; i < 2; ++i) {
                 struct MDBlkDriver *drv = &blkDrivers[i];
                 WHBLogPrintf("** Instance %d: (%s) Type: %d **", i + 1, drv->registered ? "Attached" : "Detached", drv->params.device_type);
@@ -74,14 +88,14 @@ int main(int argc, char const *argv[])
                     }
 
                     uint32_t cid[4];
-                    if (IOSUHAX_kern_read32(deviceAddress + 0x58, cid, 4) < 0) {
+                    if (iosuKernRead32(deviceAddress + 0x58, cid, 4) != MOCHA_RESULT_SUCCESS) {
                         continue;
                     }
 
                     WHBLogPrintf("CID: %08x%08x%08x%08x", cid[0], cid[1], cid[2], cid[3]);
 
                     uint32_t csd[4];
-                    if (IOSUHAX_kern_read32(deviceAddress + 0x68, csd, 4) < 0) {
+                    if (iosuKernRead32(deviceAddress + 0x68, csd, 4) != MOCHA_RESULT_SUCCESS) {
                         continue;
                     }
 
@@ -94,9 +108,9 @@ int main(int argc, char const *argv[])
             WHBLogPrintf("Failed to read driver data");
         }
 
-        IOSUHAX_Close();
+        Mocha_DeInitLibrary();
     } else {
-        WHBLogPrintf("Failed to open IOSUHAX");
+        WHBLogPrintf("Failed to initialize Mocha");
     }
 
     while (WHBProcIsRunning()) {
