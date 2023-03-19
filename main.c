@@ -97,7 +97,7 @@ int main(int argc, char const *argv[])
                     WHBLogPrintf("CID: %08x%08x%08x%08x", cid[0], cid[1], cid[2], cid[3]);
                     
                     if(!strcmp(db->type,"mmc")){
-                        uint8_t month = (uint8_t)(cid[3] >> 12);
+                        uint8_t month = (uint8_t)(cid[3] >> 12) & 0xf;
                         uint16_t year = (uint8_t)(cid[3] >> 8) & 0xf;
                         year += 1997;
                         if(year < 2005)
