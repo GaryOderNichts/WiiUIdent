@@ -102,7 +102,7 @@ int main(int argc, char const *argv[])
                         year += 1997;
                         if(year < 2005)
                             year += 0x10;
-                        WHBLogPrintf("Mfg Date: %u/%02d", month, year);
+                        WHBLogPrintf("Mfg Date: %02u/%u", month, year);
                     }
                     
 
