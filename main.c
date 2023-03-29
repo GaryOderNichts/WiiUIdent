@@ -3,6 +3,8 @@
 #include <whb/log_udp.h>
 #include <whb/log_console.h>
 
+#include <string.h>
+
 #include <mocha/mocha.h>
 
 #include "idsdb.h"
@@ -93,6 +95,16 @@ int main(int argc, char const *argv[])
                     }
 
                     WHBLogPrintf("CID: %08x%08x%08x%08x", cid[0], cid[1], cid[2], cid[3]);
+                    
+                    if(!strcmp(db->type,"mmc")){
+                        uint8_t month = (uint8_t)(cid[3] >> 12) & 0xf;
+                        uint16_t year = (uint8_t)(cid[3] >> 8) & 0xf;
+                        year += 1997;
+                        if(year < 2005)
+                            year += 0x10;
+                        WHBLogPrintf("Mfg Date: %02u/%u", month, year);
+                    }
+                    
 
                     uint32_t csd[4];
                     if (iosuKernRead32(deviceAddress + 0x68, csd, 4) != MOCHA_RESULT_SUCCESS) {
