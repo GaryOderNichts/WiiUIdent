@@ -1,0 +1,18 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build-binary:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build binary
+      run: |
+        docker run --rm -v ${PWD}:/project garyodernichts/wiiuident_builder make
+    - uses: actions/upload-artifact@v3
+      with:
+       name: WiiUIdent
+       path: |
+         *.wuhb
+         *.rpx

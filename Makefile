@@ -13,9 +13,11 @@ TOPDIR ?= $(CURDIR)
 # APP_SHORTNAME sets the short name of the application
 # APP_AUTHOR sets the author of the application
 #-------------------------------------------------------------------------------
-APP_NAME		:= mdinfo
-APP_SHORTNAME	:= mdinfo
+APP_NAME		:= WiiUIdent
+APP_SHORTNAME	:= WiiUIdent
 APP_AUTHOR		:= GaryOderNichts
+APP_VERSION		:= 1.0
+DATABASE_URL	:= wiiu.gerbilsoft.com
 
 include $(DEVKITPRO)/wut/share/wut_rules
 
@@ -30,13 +32,13 @@ include $(DEVKITPRO)/wut/share/wut_rules
 # TV_SPLASH is the image displayed during bootup on the TV, leave blank to use default rule
 # DRC_SPLASH is the image displayed during bootup on the DRC, leave blank to use default rule
 #-------------------------------------------------------------------------------
-TARGET		:=	$(notdir $(CURDIR))
+TARGET		:=	wiiuident
 BUILD		:=	build
-SOURCES		:=	.
+SOURCES		:=	source source/screens source/system
 DATA		:=	data
-INCLUDES	:=	include
+INCLUDES	:=	source include
 CONTENT		:=
-ICON		:=	icon.png
+ICON		:=	res/icon.png
 TV_SPLASH	:=
 DRC_SPLASH	:=
 
@@ -46,14 +48,15 @@ DRC_SPLASH	:=
 CFLAGS	:=	-Wall -O2 -ffunction-sections \
 			$(MACHDEP)
 
-CFLAGS	+=	$(INCLUDE) -D__WIIU__ -D__WUT__
+CFLAGS	+=	$(INCLUDE) -D__WIIU__ -D__WUT__ -DAPP_VERSION=\"$(APP_VERSION)\" \
+			-DDATABASE_URL=\"$(DATABASE_URL)\"
 
-CXXFLAGS	:= $(CFLAGS)
+CXXFLAGS	:= $(CFLAGS) -std=gnu++20
 
 ASFLAGS	:=	$(ARCH)
 LDFLAGS	=	$(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:=	-lmocha -lwut
+LIBS	:=	-lcurl -lmbedtls -lmbedcrypto -lmbedx509 -lSDL2 -lSDL2_ttf -lfreetype -lpng -lbz2 -lz -lmocha -lwut
 
 #-------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level
@@ -103,7 +106,7 @@ export HFILES_BIN	:=	$(addsuffix .h,$(subst .,_,$(BINFILES)))
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-			-I$(CURDIR)/$(BUILD)
+			-I$(CURDIR)/$(BUILD) -I$(DEVKITPRO)/portlibs/wiiu/include/SDL2
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
@@ -170,6 +173,24 @@ $(OFILES_SRC)	: $(HFILES_BIN)
 # you need a rule like this for each extension you use as binary data
 #-------------------------------------------------------------------------------
 %.bin.o	%_bin.h :	%.bin
+#-------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
+
+#-------------------------------------------------------------------------------
+%.ttf.o	%_ttf.h :	%.ttf
+#-------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
+
+#-------------------------------------------------------------------------------
+%.bdf.o	%_bdf.h :	%.bdf
+#-------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
+
+#-------------------------------------------------------------------------------
+%.pem.o	%_pem.h :	%.pem
 #-------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	@$(bin2o)
