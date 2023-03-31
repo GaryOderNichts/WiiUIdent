@@ -7,6 +7,7 @@
 #include <sysapp/launch.h>
 #include <vpad/input.h>
 #include <padscore/kpad.h>
+#include <sndcore2/core.h>
 
 namespace
 {
@@ -130,6 +131,9 @@ int main(int argc, char const* argv[])
 {
     WHBProcInit();
 
+    // call AXInit to stop already playing sounds
+    AXInit();
+
     KPADInit();
     WPADEnableURCC(TRUE);
 
@@ -160,6 +164,8 @@ int main(int argc, char const* argv[])
     mainScreen.reset();
 
     Gfx::Shutdown();
+
+    AXQuit();
 
     WHBProcShutdown();
     return 0;
