@@ -16,7 +16,7 @@ TOPDIR ?= $(CURDIR)
 APP_NAME		:= WiiUIdent
 APP_SHORTNAME	:= WiiUIdent
 APP_AUTHOR		:= GaryOderNichts
-APP_VERSION		:= 1.0
+APP_VERSION		:= 1.1
 DATABASE_URL	:= wiiu.gerbilsoft.com
 
 include $(DEVKITPRO)/wut/share/wut_rules

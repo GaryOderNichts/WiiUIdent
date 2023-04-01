@@ -88,7 +88,7 @@ const char desc[] =
     "\uff65 Security level (keyset), sataDevice, consoleType, BSP revision\n"
     "\uff65 boardType, boardRevision, bootSource, ddr3Size, ddr3Speed, ddr3Vendor\n"
     "\uff65 MLC manufacturer, revision, name, size, and CID\n"
-    "\uff65 SHA-256 hash of OTP (to prevent duplicates)\n"
+    "\uff65 Device certificate and SHA-256 hash of OTP (to prevent duplicates)\n"
     "\n"
     "Do you want to submit your console's system data?\n";
 }
