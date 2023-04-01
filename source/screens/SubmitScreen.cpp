@@ -81,14 +81,14 @@ const char desc[] =
     "but personally identifying information will be kept confidential.\n"
     "\n"
     "Information that will be submitted:\n"
-    "\uff65 System model\n"
-    "\uff65 System serial number (excluding the last 3 digits)\n"
+    "\uff65 System model and serial number (excluding the last 3 digits)\n"
     "\uff65 Manufacturing date\n"
     "\uff65 Region information\n"
     "\uff65 Security level (keyset), sataDevice, consoleType, BSP revision\n"
     "\uff65 boardType, boardRevision, bootSource, ddr3Size, ddr3Speed, ddr3Vendor\n"
     "\uff65 MLC manufacturer, revision, name, size, and CID\n"
     "\uff65 Device certificate and SHA-256 hash of OTP (to prevent duplicates)\n"
+    "\uff64 MS, CA, NG, and NG key IDs\n"
     "\n"
     "Do you want to submit your console's system data?\n";
 }
