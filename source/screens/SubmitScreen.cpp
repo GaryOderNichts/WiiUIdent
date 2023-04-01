@@ -11,50 +11,70 @@
 #include <curl/curl.h>
 #include <cacert_pem.h>
 
+#include <mocha/mocha.h>
+
+struct IOSCEccSignedCert {
+    uint32_t signature_type;    // [0x000] 0x00010002 or 0x00010005
+    uint8_t signature[0x3C];    // [0x004] ECC signature
+    uint8_t reserved1[0x40];    // [0x040] All zeroes
+    char issuer[0x40];          // [0x080] Issuer
+    uint32_t key_type;          // [0x0C0] Key type (2)
+    char console_id[0x40];      // [0x0C4] Console ID ("NGxxxxxxxx")
+    uint32_t ng_id;             // [0x104] NG ID
+    uint8_t pub_key[0x3C];      // [0x108] ECC public key
+    uint8_t reserved2[0x3C];    // [0x10C] All zeroes
+};
+WUT_CHECK_SIZE(IOSCEccSignedCert, 0x180);
+
 // POST data
 struct post_data {
-    char system_model[16];  // [0x000] seeprom[0xB8]
-    char system_serial[16]; // [0x010] seeprom[0xAC] + seeprom[0xB0] - need to mask the last 3 digits
-    uint8_t mfg_date[6];    // [0x020] seeprom[0xC4]
-    uint8_t productArea;    // [0x026]
-    uint8_t gameRegion;     // [0x027]
-    uint32_t sec_level;     // [0x028] otp[0x080]
-    uint16_t boardType;     // [0x02C] seeprom[0x21]
-    uint16_t boardRevision; // [0x02E] seeprom[0x22]
-    uint16_t bootSource;    // [0x030] seeprom[0x23]
-    uint16_t ddr3Size;      // [0x032] seeprom[0x24]
-    uint16_t ddr3Speed;     // [0x034] seeprom[0x25]
-    uint16_t sataDevice;    // [0x036] seeprom[0x2C]
-    uint16_t consoleType;   // [0x038] seeprom[0x2D]
-    uint16_t reserved1;     // [0x03A]
-    uint32_t bsp_rev;       // [0x03C] bspGetHardwareVersion();
-    uint16_t ddr3Vendor;    // [0x040] seeprom[0x29]
-    uint8_t reserved2[62];  // [0x042]
+    char system_model[16];      // [0x000] seeprom[0xB8]
+    char system_serial[16];     // [0x010] seeprom[0xAC] + seeprom[0xB0] - need to mask the last 3 digits
+    uint8_t mfg_date[6];        // [0x020] seeprom[0xC4]
+    uint8_t productArea;        // [0x026]
+    uint8_t gameRegion;         // [0x027]
+    uint32_t sec_level;         // [0x028] otp[0x080]
+    uint16_t boardType;         // [0x02C] seeprom[0x21]
+    uint16_t boardRevision;     // [0x02E] seeprom[0x22]
+    uint16_t bootSource;        // [0x030] seeprom[0x23]
+    uint16_t ddr3Size;          // [0x032] seeprom[0x24]
+    uint16_t ddr3Speed;         // [0x034] seeprom[0x25]
+    uint16_t ddr3Vendor;        // [0x036] seeprom[0x29]
+    uint16_t sataDevice;        // [0x038] seeprom[0x2C]
+    uint16_t consoleType;       // [0x03A] seeprom[0x2D]
+    uint32_t bsp_rev;           // [0x03C] bspGetHardwareVersion();
+    uint32_t wiiu_root_ms_id;   // [0x040] otp[0x280]
+    uint32_t wiiu_root_ca_id;   // [0x044] otp[0x284]
+    uint32_t wiiu_ng_id;        // [0x048] otp[0x21C]
+    uint32_t wiiu_ng_key_id;    // [0x04C] otp[0x288]
+    uint8_t reserved2[48];      // [0x050]
 
     // [0x080]
     struct {
-        uint32_t cid[4];    // [0x080] CID
-        uint32_t mid_prv;   // [0x090] Manufacturer and product revision
-        uint32_t blockSize; // [0x094] Block size
-        uint64_t numBlocks; // [0x098] Number of blocks
-        char name1[128];    // [0x0A0] Product name
+        uint32_t cid[4];        // [0x080] CID
+        uint32_t mid_prv;       // [0x090] Manufacturer and product revision
+        uint32_t blockSize;     // [0x094] Block size
+        uint64_t numBlocks;     // [0x098] Number of blocks
     } mlc;
 
-    // [0x120]
-    uint8_t otp_sha256[32]; // [0x120] OTP SHA-256 hash (to prevent duplicates)
-};  // size == 0x140 (320)
-WUT_CHECK_SIZE(post_data, 0x140);
+    // [0x0A0]
+    uint8_t otp_sha256[32];     // [0x0A0] OTP SHA-256 hash (to prevent duplicates)
+
+    // [0x0C0]
+    IOSCEccSignedCert device_cert;  // [0x0C0] Device client certificate
+};  // size == 0x240 (576)
+WUT_CHECK_SIZE(post_data, 0x240);
 
 struct post_data_hashed {
     struct post_data data;
     uint8_t post_sha256[32];    // [0x140] SHA-256 hash of post_data, with adjustments
-};  // size == 0x160 (352)
-WUT_CHECK_SIZE(post_data_hashed, 0x160);
+};  // size == 0x260 (608)
+WUT_CHECK_SIZE(post_data_hashed, 0x260);
 
 namespace
 {
 
-const char* desc =
+const char desc[] =
     "This will submit statistical data to the developers of WiiUIdent,\n"
     "which will help to determine various statistics about Wii U consoles,\n"
     "e.g. eMMC manufacturers. The submitted data may be publicly accessible\n"
@@ -183,9 +203,24 @@ void SubmitScreen::SubmitSystemData()
     pd->ddr3Vendor = seeprom.bc.ddr3Vendor;
     pd->sataDevice = seeprom.bc.sataDevice;
     pd->consoleType = seeprom.bc.consoleType;
+    pd->wiiu_root_ms_id = otp.wiiUCertBank.rootCertMSId;
+    pd->wiiu_root_ca_id = otp.wiiUCertBank.rootCertCAId;
+    pd->wiiu_ng_id = otp.wiiUNGBank.ngId;
+    pd->wiiu_ng_key_id = otp.wiiUCertBank.rootCertNGKeyId;
 
     if (bspGetHardwareVersion(&pd->bsp_rev) != 0) {
-        pd->bsp_rev = 0;
+        error = "Failed to get BSP revision";
+        return;
+    }
+
+    // Device certificate
+    // IOSC_GetDeviceCertificate() isn't directly accessible from PPC,
+    // so we'll cheat by reading a known buffer in the kernel. (2.13.01)
+    for (uint32_t i = 0; i < sizeof(pd->device_cert) / 4; i++) {
+        if (Mocha_IOSUKernelRead32(0x04024d40 + (i * 4), ((uint32_t*)&pd->device_cert) + i) != MOCHA_RESULT_SUCCESS) {
+            error = "Failed to read device certificate";
+            return;
+        }
     }
 
     // System serial number
@@ -220,7 +255,8 @@ void SubmitScreen::SubmitSystemData()
         pd->mlc.mid_prv = mlcDev->GetMID() << 16 | mlcDev->GetPRV();
         pd->mlc.numBlocks = mlcDev->GetNumBlocks();
         pd->mlc.blockSize = mlcDev->GetBlockSize();
-        strncpy(pd->mlc.name1, mlcDev->GetName().c_str(), sizeof(pd->mlc.name1) - 1);
+        // NOTE: Not copying pd->mlc.name1 because the eMMC device name
+        // is fully contained within the MLC CID.
     }
 
     if (Utils::SHA256(&otp, sizeof(otp), pd->otp_sha256, sizeof(pd->otp_sha256)) != 0) {
