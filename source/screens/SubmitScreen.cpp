@@ -174,7 +174,7 @@ size_t SubmitScreen::CurlWriteCallback(void* contents, size_t size, size_t nmemb
 
 void SubmitScreen::SubmitSystemData()
 {
-    const auto& otp = OTP::Get();
+    auto otp = OTP::Get();
     const auto& seeprom = SEEPROM::Get();
     WUT_ALIGNAS(0x40) MCPSysProdSettings sysProd{};
     int32_t mcpHandle = MCP_Open();
@@ -259,6 +259,7 @@ void SubmitScreen::SubmitSystemData()
         // is fully contained within the MLC CID.
     }
 
+    memset(&otp.miscBank, 0, 0x40);
     if (Utils::SHA256(&otp, sizeof(otp), pd->otp_sha256, sizeof(pd->otp_sha256)) != 0) {
         error = "Failed to hash otp data";
         return;
