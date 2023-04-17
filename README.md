@@ -51,7 +51,8 @@ The database is publicly accessible but personally identifying information will 
 For building you need: 
 - [wut](https://github.com/devkitPro/wut)
 - [libmocha](https://github.com/wiiu-env/libmocha)
-- [SDL2 v2.22](https://github.com/GaryOderNichts/SDL/tree/wiiu-sdl2-2.0.22)
+- [wiiu-sdl2](https://github.com/GaryOderNichts/SDL/tree/wiiu-sdl2-2.26)
+- wiiu-sdl2_ttf
 - wiiu-curl
 - wiiu-mbedtls
 

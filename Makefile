@@ -56,7 +56,7 @@ CXXFLAGS	:= $(CFLAGS) -std=gnu++20
 ASFLAGS	:=	$(ARCH)
 LDFLAGS	=	$(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:=	-lcurl -lmbedtls -lmbedcrypto -lmbedx509 -lSDL2 -lSDL2_ttf -lfreetype -lpng -lbz2 -lz -lmocha -lwut
+LIBS	:=	-lcurl -lmbedtls -lmbedcrypto -lmbedx509 -lSDL2 -lSDL2_ttf -lfreetype -lharfbuzz -lfreetype -lpng -lbz2 -lz -lmocha -lwut
 
 #-------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level

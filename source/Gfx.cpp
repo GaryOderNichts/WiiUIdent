@@ -106,9 +106,6 @@ bool Init()
         return false;
     }
 
-    // FIXME Probably SDL bug? If we don't draw before FC_LoadFont_RW our viewport shrinks
-    Gfx::DrawRectFilled(0, 0, 0, 0, COLOR_BLACK);
-
     if (!FC_LoadFont_RW(monospaceFont, renderer, SDL_RWFromMem((void*)ter_u32b_bdf, ter_u32b_bdf_size), 1, 32, Gfx::COLOR_BLACK, TTF_STYLE_NORMAL)) {
         FC_FreeFont(monospaceFont);
         return false;

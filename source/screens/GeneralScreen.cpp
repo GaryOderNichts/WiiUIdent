@@ -8,20 +8,6 @@
 #include <coreinit/mcp.h>
 #include <coreinit/bsp.h>
 
-extern "C"
-{
-
-typedef struct {
-    uint32_t major;
-    uint32_t minor;
-    uint32_t patch;
-    char region;
-} MCPSystemVersion;
-
-MCPError MCP_GetSystemVersion(int32_t handle, MCPSystemVersion* systemVersion);
-
-}
-
 namespace
 {
 
