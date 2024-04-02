@@ -4,13 +4,13 @@ on: [push, pull_request]
 
 jobs:
   build-binary:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Build binary
       run: |
         docker run --rm -v ${PWD}:/project garyodernichts/wiiuident_builder make
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
        name: WiiUIdent
        path: |
