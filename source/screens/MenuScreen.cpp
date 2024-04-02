@@ -1,6 +1,7 @@
 #include "MenuScreen.hpp"
 #include "Gfx.hpp"
 #include "AboutScreen.hpp"
+#include "DRXInfoScreen.hpp"
 #include "GeneralScreen.hpp"
 #include "StorageScreen.hpp"
 #include "SubmitScreen.hpp"
@@ -11,6 +12,7 @@ MenuScreen::MenuScreen()
  : entries({
         { MENU_ID_GENERAL, { 0xf085, "General System Information" }},
         { MENU_ID_STORAGE, { 0xf7c2, "Storage Information" }},
+        { MENU_ID_DRX,     { 0xf11b, "DRC/DRH Information" }},
         { MENU_ID_SUBMIT,  { 0xf0ee, "Submit System Information" }},
         // { MENU_ID_TITLE, { 0xf022, "Title Information" }},
         { MENU_ID_ABOUT,   { 0xf05a, "About WiiUIdent" }},
@@ -75,6 +77,9 @@ bool MenuScreen::Update(VPADStatus& input)
             break;
         case MENU_ID_STORAGE:
             subscreen = std::make_unique<StorageScreen>();
+            break;
+        case MENU_ID_DRX:
+            subscreen = std::make_unique<DRXInfoScreen>();
             break;
         case MENU_ID_SUBMIT:
             subscreen = std::make_unique<SubmitScreen>();

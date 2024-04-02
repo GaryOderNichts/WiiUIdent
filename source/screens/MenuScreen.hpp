@@ -20,6 +20,7 @@ private:
     enum MenuID {
         MENU_ID_GENERAL,
         MENU_ID_STORAGE,
+        MENU_ID_DRX,
         MENU_ID_SUBMIT,
         MENU_ID_ABOUT,
 

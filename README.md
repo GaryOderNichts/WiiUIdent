@@ -32,6 +32,12 @@ WiiUIdent currently displays:
     - Production Date (MLC only)
     - Size
     - CID/CSD
+- DRC/DRH information
+    - Running Version
+    - Active Version
+    - Board Version
+    - Region
+    - Ext IDs
 
 ## System Database
 WiiUIdent comes with an option to optionally upload system information to a database. This allows collecting various statistics about Wii U consoles.  
