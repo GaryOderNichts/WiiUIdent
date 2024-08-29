@@ -57,6 +57,7 @@ const std::map<uint16_t, std::string> sdMidMap = {
     { 0x31, "Silicon Power" },
     { 0x33, "STMicroelectronics" },
     { 0x41, "Kingston" },
+    { 0x5d, "Swissbit"},
     { 0x6f, "STMicroelectronics" },
     { 0x74, "Transcend" },
     { 0x76, "Patriot" },
