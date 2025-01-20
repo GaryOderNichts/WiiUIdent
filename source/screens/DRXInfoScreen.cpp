@@ -1,6 +1,7 @@
 #include "DRXInfoScreen.hpp"
 #include "Utils.hpp"
 #include <span>
+#include <map>
 
 #include <nsysccr/cdc.h>
 #include <nsysccr/cfg.h>
@@ -58,6 +59,15 @@ const char* kBoardSubVersions[] = {
     "DKTVMP"
 };
 
+// from gamepad firmware @0x00020bc0
+const std::map<uint8_t, const char*> kChipVersions = {
+   { 0x10, "TS" },
+   { 0x20, "ES1" },
+   { 0x30, "ES2" },
+   { 0x40, "ES3" },
+   { 0x41, "MS01" },
+};
+
 // from gamepad firmare @0x000b29fc
 const char* kRegionStrings[] = {
     "JAPAN",
@@ -105,6 +115,15 @@ DRXInfoScreen::DRXInfoScreen()
         mDRCList.push_back({"GetRegion failed", ""});
     }
 
+    CCRCDCSysInfo sysInfo;
+    if (CCRCDCSysGetInfo(CCR_CDC_DESTINATION_DRC0, &sysInfo) == 0) {
+        mDRCList.push_back({"Chip Version:", Utils::sprintf("%s (0x%02x)",
+            kChipVersions.contains(sysInfo.chipVersion) ? kChipVersions.at(sysInfo.chipVersion) : "UNKNOWN", sysInfo.chipVersion)});
+        mDRCList.push_back({"UMI Version:", {Utils::sprintf("0x%08x", sysInfo.umiVersion), true}});
+    } else {
+        mDRCList.push_back({"SysGetInfo failed", ""});
+    }
+
     if (CCRCDCSoftwareGetVersion(CCR_CDC_DESTINATION_DRH, &softwareVersion) == 0) {
         uint32_t v = softwareVersion.runningVersion;
         mDRHList.push_back({"Running Version:", Utils::sprintf("%d.%d.%d", v >> 24 & 0xff, v >> 16 & 0xff, v & 0xffff)});
@@ -150,12 +169,12 @@ void DRXInfoScreen::Draw()
     int yOff = 128;
     yOff = DrawHeader(32, yOff, 896, 0xf11b, "DRC Info");
     yOff = DrawList(32, yOff, 896, mDRCList);
-    yOff = DrawHeader(32, yOff, 896, 0xf0cb, "DRC Ext IDs");
-    yOff = DrawList(32, yOff, 896, mExtIdList);
+    yOff = DrawHeader(32, yOff, 896, 0xf2db, "DRH Info");
+    yOff = DrawList(32, yOff, 896, mDRHList);
 
     yOff = 128;
-    yOff = DrawHeader(992, yOff, 896, 0xf2db, "DRH Info");
-    yOff = DrawList(992, yOff, 896, mDRHList);
+    yOff = DrawHeader(992, yOff, 896, 0xf0cb, "DRC Ext IDs");
+    yOff = DrawList(992, yOff, 896, mExtIdList);
 
     DrawBottomBar(nullptr, "\ue044 Exit", "\ue001 Back");
 }
